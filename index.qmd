@@ -1,0 +1,174 @@
+---
+title: "Desarrollo de gráficos interactivos"
+author: "Andrey Caballero"
+format: html
+toc: true
+lang: es
+---
+# Carga del paquetes de las librerias
+
+```{r}
+#| label: Se cargan los paquetes 
+#| warning: false
+#| message: false
+library (tidyverse)
+library (plotly)
+library(DT)
+library (scales)
+library(ggthemes)
+library(hrbrthemes)
+```
+# Gráficos de dispersión
+
+## Gráficos de dispersión de la concentración de ozono versus el tiempo.
+
+```{r}
+# Gráfico de dispersión de la concentración de ozono versus el tiempo en meses.
+
+#| label: Gráfico de dispersión de la concentración de ozono versus el tiempo
+#| warning: false
+#| message: false
+
+aire <- na.omit (airquality)
+grafico_ggplot2 <-
+  aire |>
+  ggplot(aes(x = Day, y = Ozone, color = factor (Month))) +
+  geom_point( ) +
+  scale_x_continuous(labels = comma, limits = c(0, 30)) +
+  scale_y_continuous(labels = comma, limits = c(0, 150)) +
+  ggtitle("Concentración de Ozono en el aire en ppm") +
+  xlab("Días (d)") +
+  ylab("Concentración de Ozono (ppm)") +
+  labs(subtitle = "Figura 1", caption = "Fuentes: Chambers, J. M.et al (1983).Graphical Methods for Data Analysis. Belmont, CA: Wadsworth",
+       color = "Número de mes del año") +
+    theme_ipsum() 
+
+# Gráfico plotly
+ggplotly(grafico_ggplot2, tooltip = "text") |> 
+  config(locale = 'es') # para mostrar los controles en español
+
+```
+### Interpretación del gráfico
+
+Se puede observar el comportamiento de la concentración de **ozono** en ppm derivados de un estudio de calidad de aire, en donde por ejemplo se puede visualizar un máximo de concentración de mayor a 150 ppm de **ozono** para el día 25, mientras en la distribución de concentraciones se lograron visualizar para el rango de día del 20-24. Por otro lado, en la distribución de concentraciones se muestra en la figura que estuvieron en el rango de 0-50 ppm de **ozono**.
+
+# Gráficos de barras
+
+## Gráfico de barras del promedio de la longitud del pétalo para tres especies de plantas según estudio realizado.
+
+```{r}
+#| label: Gráficos de barras
+#| warning: false
+#| message: false
+
+planta <- iris
+
+# Cálculo del promedio del largo Pétalo
+
+prom_plantas <- 
+  planta |>
+  group_by(Species) |>
+  summarise(Longitud_Petal= mean(Petal.Length, na.rm= TRUE))
+
+# Gráfico de barras con promedio de la longitud de los pétlaos por especie de planta
+
+grafico_barras_ggplot2 <-
+  prom_plantas |>
+  ggplot(aes(x = reorder(Species,-Longitud_Petal), y = Longitud_Petal)) +
+  geom_col(
+    aes(
+      text = paste0(
+        "Promedio de la longitud de los pétalos: ", round(after_stat(y), 2)
+      )
+    )    
+  ) +
+  ggtitle("Promedio de la longitud de los pétalos por cada especie de planta") +
+  xlab("Especie de planta") +
+  ylab("Promedio de la longitud de los pétalos (cm)") +
+  labs(caption = "Fuente: Fisher, R. A. (1936) The use of multiple measurements in taxonomic problems") +
+  labs (fill= "Tipo de planta") +
+   theme_ipsum() + theme(legend.title= element_blank())
+
+# Gráfico de barras plotly
+ggplotly(grafico_barras_ggplot2, tooltip = "text") |>
+  config(locale = 'es')
+```
+### Interpretación del gráfico de barras
+
+Se muestra el promedio de la longitud en orden de mayor a menor de la longitud de los pétalos estudiados para tres tipos de especies de plantas, una de las variables analizadas.En el gráfico se puede visualizar que la planta *virginica* presenta la mayor longitud promedio de los pétalos. Mientras que para la *setosa* es la que presenta una menor longitud del tamaño de los pétalos.
+
+# Gráfico pastel
+
+## Gráfico pastel de la distribución de especies de plantas utilizadas.
+
+```{r}
+#| label: Gráficos tipo pastel
+#| warning: false
+#| message: false
+
+# En este apartado se agrupan los datos
+
+concen_co2 <- CO2
+
+sum_uptake <- concen_co2 |>
+  group_by(Plant)|>
+  summarise(suma_concen = sum(uptake))
+
+# Construcción del gráfico pastel
+
+ggplot(sum_uptake, aes(x = "", y = suma_concen, fill = Plant)) +
+  geom_bar(stat = "identity", width = 1) +
+  coord_polar("y") +
+  theme_void() +
+  labs(title = "Distribución del concentración CO2 consumido por planta según tratamiento")
+
+
+```
+### Interpretación del gráfico pastel
+
+ En el gráfico anterior se puede observar la distribución de la concentración consumida de las diferentes plantas empleadas para observar el cambio en la concentración de **CO2**, y se puede observar que las plantas *Qn1, Qn2 y Qn3* son las que tiene un mayor consumo de *dióxido de carbono* en cada uno de los ensayos realizados
+
+# Histograma
+
+## Histograma de la distribución de la concentración de CO2 retenidas en plantas
+
+```{r}
+#| label: Histograma de la distribución de la concentración de CO2 consumido en plantas
+#| warning: false
+#| message: false
+
+# Se carga la base de datos de concentración del CO2
+
+conc_co2 <- CO2
+
+# Se realiza el histograma de la frecuencia en diferentes rangos de concentración consumido
+
+histo_ggplo2 <- 
+  conc_co2 |>
+   ggplot(aes(x = uptake)) +
+  geom_histogram(
+    aes(
+      fill= ..count..,
+      text = paste0(
+        "Concentración de CO2 consumido: ppm",  round(after_stat(x), 2), "\n",
+        "Frecuencia: ", after_stat(count)
+      )
+    ), 
+    bins = 5
+  )  +
+  ggtitle("Distribución de la concentración consumido por plantas ") +
+  xlab("Consumo de concentración de dióxido de carbono (ppm))") +
+  ylab("Frecuencia") +
+  labs(subtitle = "Datos de 11 tipos de tratamientos", caption = "Fuentes: Potvin, C., et al. (1990) “The statistical analysis of ecophysiological") +
+  theme_economist()
+
+# Histograma agregando interactividad
+
+ggplotly(histo_ggplo2, tooltip = "text") |> 
+  config(locale = 'es')
+
+```
+### Interpretación del histograma
+
+Se muestra la distribución de concentración de **CO2** que las plantas empleadas pueden consumir, mismo que logran capturar de la atmósfera. Por otro lado, con respecto a la concentración que pueden consumir las plantas, la mayor parte se encuentran entre 10-20 ppm de **CO2** y 30-40 ppm **CO2**, mientras que la menor consumo se encuentra entre 0-10 ppm de **CO2**.
+
