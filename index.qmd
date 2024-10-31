@@ -5,6 +5,8 @@ format: html
 toc: true
 lang: es
 ---
+![Imagen local](aaa.jpg)
+
 # Carga del paquetes de las librerias
 
 ```{r}
