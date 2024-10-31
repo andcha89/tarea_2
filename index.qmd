@@ -33,7 +33,11 @@ aire <- na.omit (airquality)
 grafico_ggplot2 <-
   aire |>
   ggplot(aes(x = Day, y = Ozone, color = factor (Month))) +
-  geom_point( ) +
+  geom_point(aes(
+    text = paste0("Day: ", Day, "\n",
+                  "Concentración de ozono: ppm ", Ozone
+                  )
+  ) ) +
   scale_x_continuous(labels = comma, limits = c(0, 30)) +
   scale_y_continuous(labels = comma, limits = c(0, 150)) +
   ggtitle("Concentración de Ozono en el aire en ppm") +
